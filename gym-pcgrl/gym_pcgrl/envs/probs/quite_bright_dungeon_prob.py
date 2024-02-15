@@ -29,21 +29,25 @@ class QuiteBrightDungeonProblem(Problem):
         }
         self._border_tile = "WallTile"
 
+        self._max_treasure = 9
         self._max_enemies = 9
+        self._max_traps = 9
 
-        self._target_enemy_dist = 2
+        self._target_enemy_dist = 1
+        self._target_treasure_dist = 2
 
         self._target_solution = 20
 
         self._rewards = {
-            "player": 3,
-            "traps": 3,
-            "regions": 5,
-            "enemies": 1,
-            "nearest-enemy": 2,
-            "path-length": 1,
-            "dist-win": 0.0,
-            "sol-length": 1
+            "PlayerStartTile": 3,
+            "PlayerEndTile": 3,
+            "TreasureTile": 3,
+            "EnemyTile": 3,
+            "TrapTile": 3,
+            "nearest-enemy-or-trap": 2,
+            "too-close_treasure_pairs": 2,
+            "regions": 7,
+            "path-length": 1
         }
 
     """
@@ -71,7 +75,7 @@ class QuiteBrightDungeonProblem(Problem):
             "EnemyTile": calc_certain_tile(map_locations, ["EnemyTile"]),
             "TrapTile": calc_certain_tile(map_locations, ["TrapTile"]),
             "nearest-enemy-or-trap": 0,
-
+            "too-close_treasure_pairs": 0,
             "regions": calc_num_regions(map, map_locations, ["EmptyTile", "PlayerStartTile", "EnemyTile", "TreasureTile", "TrapTile"]),
             "path-length": 0
         }
@@ -92,6 +96,15 @@ class QuiteBrightDungeonProblem(Problem):
             dikjstra,_ = run_dikjstra(p_x, p_y, map, ["EmptyTile", "PlayerStartTile", "PlayerEndTile", "EnemyTile", "TreasureTile", "TrapTile"])
             map_stats["path-length"] += dikjstra[e_y][e_x]
 
+            treasure_locations = map_locations.get("TreasureTile", [])
+            count = 0
+            for i, (x1, y1) in enumerate(treasure_locations):
+                for j, (x2, y2) in enumerate(treasure_locations):
+                    if i < j:  # This ensures each pair is only counted once
+                        distance = abs(x2 - x1) + abs(y2 - y1)
+                        if distance < self._target_treasure_dist:
+                            count += 1
+            map_stats["distance-between-treasure"] = count
         return map_stats
 
     """
@@ -107,21 +120,25 @@ class QuiteBrightDungeonProblem(Problem):
     def get_reward(self, new_stats, old_stats):
         #longer path is rewarded and lesser number of regions is rewarded
         rewards = {
-            "player": get_range_reward(new_stats["player"], old_stats["player"], 1, 1),
-            "key": get_range_reward(new_stats["key"], old_stats["key"], 1, 1),
-            "door": get_range_reward(new_stats["door"], old_stats["door"], 1, 1),
-            "enemies": get_range_reward(new_stats["enemies"], old_stats["enemies"], 2, self._max_enemies),
-            "nearest-enemy": get_range_reward(new_stats["nearest-enemy"], old_stats["nearest-enemy"], self._target_enemy_dist, np.inf),
+            "PlayerStartTile": get_range_reward(new_stats["PlayerStartTile"], old_stats["PlayerStartTile"], 1, 1),
+            "PlayerEndTile": get_range_reward(new_stats["PlayerEndTile"], old_stats["PlayerEndTile"], 1, 1),
+            "TreasureTile": get_range_reward(new_stats["TreasureTile"], old_stats["TreasureTile"], 2, self._max_treasure),
+            "EnemyTile": get_range_reward(new_stats["EnemyTile"], old_stats["EnemyTile"], 2, self._max_enemies),
+            "TrapTile": get_range_reward(new_stats["TrapTile"], old_stats["TrapTile"], 2, self._max_traps),
+            "nearest-enemy-or-trap": get_range_reward(new_stats["nearest-enemy-or-trap"], old_stats["nearest-enemy-or-trap"], self._target_enemy_dist, np.inf),
+            "too-close_treasure_pairs": get_range_reward(new_stats["too-close_treasure_pairs"], old_stats["too-close_treasure_pairs"], 0, 0),
 
             "regions": get_range_reward(new_stats["regions"], old_stats["regions"], 1, 1),
             "path-length": get_range_reward(new_stats["path-length"],old_stats["path-length"], np.inf, np.inf)
         }
         #calculate the total reward
-        return rewards["player"] * self._rewards["player"] +\
-            rewards["key"] * self._rewards["key"] +\
-            rewards["door"] * self._rewards["door"] +\
-            rewards["enemies"] * self._rewards["enemies"] +\
-            rewards["nearest-enemy"] * self._rewards["nearest-enemy"] +\
+        return rewards["PlayerStartTile"] * self._rewards["PlayerStartTile"] +\
+            rewards["PlayerEndTile"] * self._rewards["PlayerEndTile"] +\
+            rewards["TreasureTile"] * self._rewards["TreasureTile"] +\
+            rewards["EnemyTile"] * self._rewards["EnemyTile"] +\
+            rewards["TrapTile"] * self._rewards["TrapTile"] +\
+            rewards["nearest-enemy-or-trap"] * self._rewards["nearest-enemy"] +\
+            rewards["too-close_treasure_pairs"] * self._rewards["too-close_treasure_pairs"] +\
             rewards["regions"] * self._rewards["regions"] +\
             rewards["path-length"] * self._rewards["path-length"]
 
