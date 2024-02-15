@@ -1,0 +1,135 @@
+import os
+import onnxruntime as ort
+import numpy as np
+import json
+import torch
+import torchvision.utils as vutils
+from PIL import Image
+
+GAN_model_directory = "D:/Github/dungeonCrawlerMgr/LevelData/results_GAN/6_epok/"
+GAN_results_directory = "D:/Github/dungeonCrawlerMgr/LevelData/results_GAN/"
+
+def get_last_number():
+    files = os.listdir(GAN_model_directory)
+    max_num = 0
+    for file in files:
+        if "ator_" in file:
+            try:
+                num = int(file.split("_")[-1].split(".")[0])
+                max_num = max(max_num, num)
+            except ValueError:
+                pass
+    return max_num
+
+def map_color_to_number(pixel_value):
+    color_mapping = {
+        0: 0,
+        42: 1,
+        84: 2,
+        126: 3,
+        168: 4,
+        210: 5,
+        255: 6,
+    }
+    closest_number = min(color_mapping.keys(), key=lambda x: abs(x - pixel_value))
+    return color_mapping[closest_number]
+
+def save_to_json(data, index):
+    filepath = os.path.join(GAN_results_directory, f'generated_levelTileArray_{index}.json')
+    data = {
+        "LevelTileArray": data
+    }
+    with open(filepath, 'w') as f:
+        json_str = json.dumps(data, separators=(',', ':'))
+        formatted_str = json_str.replace('],', '],\n\t\t').replace('[[', '[\n\t\t[').replace(']]', ']\n\t]')
+        f.write('{\n\t' + formatted_str[1:-1] + '\n}')
+
+model_path = os.path.join(GAN_model_directory, f"generator_{get_last_number()}.onnx")
+ort_session = ort.InferenceSession(model_path)
+
+noise = np.random.randn(20, 100, 1, 1).astype(np.float32)
+ort_inputs = {ort_session.get_inputs()[0].name: noise}
+ort_outs = ort_session.run(None, ort_inputs)
+generated_image = ort_outs[0][0]
+
+first_image = generated_image[0]
+first_im = Image.fromarray((first_image * 255).astype(np.uint8), 'L')
+first_im.save("D:/Github/dungeonCrawlerMgr/LevelData/results_GAN/GAN_generated_image.png")
+
+img_array = np.array(first_im)
+rows, cols = img_array.shape[0], img_array.shape[1]
+mapped_array = np.zeros((rows, cols), dtype=int)
+for i in range(rows):
+    pixels = []
+    for j in range(cols):
+        pixel_value = img_array[i, j]
+        mapped_array[i, j] = map_color_to_number(pixel_value)
+        pixels.append(pixel_value)
+    print(pixels)
+save_to_json(mapped_array.tolist(), get_last_number())
+
+# import os
+# import onnx
+# import torch
+# import numpy as np
+# import json
+# import onnxruntime as ort
+# from PIL import Image
+#
+# GAN_results_directory = "D:/Github/dungeonCrawlerMgr/LevelData/results_GAN/6_epok/"
+#
+# def get_last_number():
+#     files = os.listdir(GAN_results_directory)
+#     max_num = 0
+#     for file in files:
+#         if "ator_" in file:
+#             try:
+#                 num = int(file.split("_")[-1].split(".")[0])
+#                 max_num = max(max_num, num)
+#             except ValueError:
+#                 pass
+#     return max_num
+#
+# def load_model():
+#     # Load ONNX model
+#     generator_path = os.path.join(GAN_results_directory, f"generator_{get_last_number()}.onnx")
+#     ort_gen_session = ort.InferenceSession(generator_path)
+#
+#     #input_shape = ort_gen_session.get_inputs()[0].shape
+#     #print("Expected input shape: ", input_shape)
+#     return ort_gen_session
+#
+# def generate_map(model):
+#     noise = np.random.randn(20, 100, 1, 1).astype(np.float32)
+#     ort_inputs = {model.get_inputs()[0].name: noise}
+#     generated_img = model.run(None, ort_inputs)[0].squeeze()
+#     save_to_png(generated_img)
+#
+#     generated_map = np.digitize(generated_img, bins=[42, 84, 126, 168, 210, 255])
+#     return generated_map
+#
+# def save_to_json(array, last_num):
+#     filepath = os.path.join(GAN_results_directory, f'generated_levelTileArray_{last_num}.json')
+#     data = {
+#         "LevelTileArray": array.tolist()
+#     }
+#     with open(filepath, 'w') as f:
+#         json_str = json.dumps(data, separators=(',', ':'))
+#         formatted_str = json_str.replace('],', '],\n\t\t').replace('[[', '[\n\t\t[').replace(']]', ']\n\t]')
+#         f.write('{\n\t' + formatted_str[1:-1] + '\n}')
+#
+# def save_to_png(array):
+#     array = (array * 255).astype('uint8')  # Denormalize
+#     if len(array.shape) == 2:
+#         im = Image.fromarray(array, 'L')  # 'L' mode for grayscale
+#     elif len(array.shape) == 3:
+#         im = Image.fromarray(array, 'RGB')
+#     else:
+#         raise ValueError("Array shape not supported")
+#     im = Image.fromarray((array * 255).astype('uint8'))
+#     im.save(os.path.join(GAN_results_directory, f"generated_image_{get_last_number()}.png"))
+#
+# if __name__ == "__main__":
+#     model = load_model()
+#     generated_map = generate_map(model)
+#     save_to_json(generated_map, get_last_number())

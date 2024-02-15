@@ -1,0 +1,75 @@
+from PIL import Image
+import numpy as np
+import os
+import json
+import svgwrite
+
+color_mapping = {
+    0: 0,
+    1: 42,
+    2: 84,
+    3: 126,
+    4: 168,
+    5: 210,
+    6: 255,
+}
+
+data_directory = "D:/Github/dungeonCrawlerMgr/LevelData/training_data_augmented/"
+preprocessed_data_directory = "D:/Github/dungeonCrawlerMgr/LevelData/training_data_preprocessed_imagesSVG/class1"
+
+for index in range(1, 10000):  # Replace 10000 with the number of JSON files you have
+    # Load the JSON data
+    filepath = os.path.join(data_directory, f"levelTileArray_{index}.json")
+    with open(filepath, 'r') as json_file:
+        json_data = json.load(json_file)
+
+    # Extract the 2D array from the "LevelTileArray" key
+    data = json_data["LevelTileArray"]
+
+    # Create an SVG drawing
+    width, height = len(data[0]), len(data)
+    drawing = svgwrite.Drawing(filename=os.path.join(preprocessed_data_directory, f"preprocessed_image_{index}.svg"))
+
+    # Map the numbers to grayscale colors and draw rectangles
+    for y in range(height):
+        for x in range(width):
+            pixel_value = color_mapping.get(data[y][x], 0)
+            color = f"rgb({pixel_value}, {pixel_value}, {pixel_value})"
+            drawing.add(drawing.rect(insert=(x, y), size=(1, 1), fill=color))
+
+    # Save the SVG drawing
+    drawing.save()
+
+
+#
+# def load_and_preprocess(index):
+#     filepath = data_directory + f"levelTileArray_{index}.json"
+#     if not os.path.exists(filepath):
+#         return None
+#
+#     with open(filepath, "r") as file:
+#         data = json.load(file)
+#         level_tile_array = data["LevelTileArray"]
+#
+#         # Initialize a blank RGB image
+#         img = Image.new('RGB', (20, 20), (255, 255, 255))
+#         pixels = img.load()
+#
+#         for i in range(20):
+#             for j in range(20):
+#                 val = level_tile_array[i][j]
+#                 pixels[i, j] = color_mapping[val]
+#
+#         # Save the image
+#         if not os.path.exists(preprocessed_data_directory):
+#             os.makedirs(preprocessed_data_directory)
+#
+#         img.save(f"{preprocessed_data_directory}levelTileArray_{index}.png")
+#
+#
+# def load_all_data(max_files=10000):
+#     for index in range(max_files):
+#         load_and_preprocess(index)
+#
+#
+# load_all_data()

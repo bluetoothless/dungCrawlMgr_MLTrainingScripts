@@ -1,0 +1,3 @@
+5280 ćwiartek:
+	4224 trening
+	1056 walidacja

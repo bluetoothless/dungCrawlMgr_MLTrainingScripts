@@ -1,0 +1,32 @@
+I want to create a reinforcement learning model that generates new dungeon maps using the gym-pcgrl framework. I have a dataset that consists of 1320 exmaple dungeon crawler maps. The maps are representations of game levels, saved in .json format. They are grids of 20x20 tiles, and each tile can be one of 7 types: 0, 1, 2, 3, 4, 5 or 6. The maps are preprocessed to contain one-hot vectors instead of straight up tile values. An example preprocessed map looks like this:
+{
+	"LevelTileArray": [
+		[[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0]],
+...
+
+The model should generate maps similar to mine, using the maps from the dataset and giving rewards for these rules:
+- 35-45% of tiles in the map are wall tiles (type 1) -> 0.8 reward
+- All edge tiles are wall tiles (type 1) -> 0.7 reward
+- There is only one start tile (type 2) -> 1 reward
+- There is only one end tile (type 3) -> 0.6 reward
+The hyperparameters should be global and declared at the top of the python file. They should look for example like this one:
+LEARNING_RATE = 0.0005
+
+I'd like to use the PPO algorithm and Pytorch. I have already done the preprocessing. The data loading could look similar to this:
+def load_preprocessed_maps(directory):
+    maps = []
+    for filename in os.listdir(directory):
+        if filename.endswith(".json"):
+            with open(os.path.join(directory, filename), 'r') as f:
+                data = json.load(f)
+                maps.append(data["LevelTileArray"])
+    return maps
+
+I also want the model to be saved every 10 epochs as .onnx and every 10 epochs to save a plot of the loss value from the beginning of training to current epoch. I want the model to train using the GPU, the model should use cuda. The model should not learn with CPU. 
+
+The data should be taken from these directories:
+preprocessed_data_directory = "D:/Github/dungeonCrawlerMgr/LevelData/training_data_preprocessed/"
+And the results and plots should be saved in this directory:
+results_directory = "D:/Github/dungeonCrawlerMgr/LevelData/results_VAE/"
+
+Please write the whole code in python and show it. Also, in it, define my custom gym environment for me, one that would best suit this task. I you need clarification in the task, ask for it. If you need more than one response to write it, ask for more responses.

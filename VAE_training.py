@@ -1,0 +1,306 @@
+#2102.12463
+import os
+import json
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import matplotlib.pyplot as plt
+import numpy as np
+import optuna
+from torch.utils.data import DataLoader, TensorDataset
+
+# Hyperparameters
+latent_dim = 32
+save_step = 50
+num_epochs = 250
+#
+learning_rate = 0.0008 #0.001
+lr_decay = 0.00004 #0.001
+lr_decay_epoch = 4500 #2500
+batch_size = 32 #64
+#annealing - introducing a weight for the KLD loss and gradually increasing it during training
+kld_weight = 0.01
+kld_anneal_rate = 0.00001 #0.0001  # Rate at which to increase KLD weight
+kld_max = 1.798 #1        # Maximum weight for KLD loss
+
+# Best trial:	<-better checking on smaller sidez maps				For 4 linear layers
+#   Value: 514.7628682454427
+#   Params:
+#     learning_rate: 0.0019876975805149465
+#     lr_decay: 0.0006118105831672843
+#     lr_decay_epoch: 2500
+#     batch_size: 32
+#     kld_weight: 0.18788813121829084
+#     kld_max: 1.4262041754442183
+#     kld_anneal_rate: 0.00015102515974408108
+
+# Data Directories
+preprocessed_data_directory = "D:/Github/dungeonCrawlerMgr/LevelData/training_data_preprocessed_cropped_18x18/"
+validation_data_directory = "D:/Github/dungeonCrawlerMgr/LevelData/validation_data_preprocessed_cropped_18x18/"
+results_directory = "D:/Github/dungeonCrawlerMgr/LevelData/results_VAE/"
+
+# Load Preprocessed Maps
+def load_preprocessed_maps(directory):
+    maps = []
+    for filename in os.listdir(directory):
+        if filename.endswith(".json"):
+            with open(os.path.join(directory, filename), 'r') as f:
+                data = json.load(f)
+                maps.append(data["LevelTileArray"])
+    return np.array(maps)
+
+# Save Model
+# def save_model(model, device):
+#     next_number = get_next_number()
+#     torch.save(model.state_dict(), f"{results_directory}_2102.12463_model_{next_number}.pt")
+#     #dummy_input = torch.randn([1, 7, 18, 18]).to(device)
+#     dummy_latent = torch.randn(1, LATENT_DIM).to(device)
+#     file_path = results_directory + f"VAE_model_2102.12463_{next_number}.onnx"
+#     #torch.onnx.export(model, dummy_input, file_path, verbose=True)
+#     torch.onnx.export(model.decode, dummy_latent, file_path, verbose=True)
+
+def save_model(vae_model, device):
+    next_number = get_next_number()
+    decoder_model = VAE_Decoder(latent_dim)
+    decoder_state_dict = {
+        key.replace("dec", "dec"): value
+        for key, value in vae_model.state_dict().items()
+        if key.startswith("dec")
+    }
+    decoder_model.load_state_dict(decoder_state_dict)
+    dummy_latent = torch.randn(1, latent_dim).to(device)
+    torch.save(vae_model.state_dict(), f"{results_directory}_2102.12463_model_{next_number}.pt")
+    decoder_file_path = results_directory + f"VAE_model_2102.12463_{next_number}.onnx"
+    torch.onnx.export(decoder_model, dummy_latent, decoder_file_path, verbose=True)
+
+# Get Next Number for Model Saving
+def get_next_number():
+    files = os.listdir(results_directory)
+    max_num = -1
+    for file in files:
+        if "VAE_model_" in file:
+            try:
+                num = int(file.split("_")[-1].split(".")[0])
+                max_num = max(max_num, num)
+            except ValueError:
+                pass
+    return max_num + 1
+
+# Save Plot
+def save_plot(train_losses, val_losses, number):
+    plt.figure()
+    plt.plot(val_losses, label="Validation Loss", color='red')
+    plt.plot(train_losses, label="Training Loss", color='blue')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.savefig(results_directory + f"VAE_plot_2102.12463_{number - 1}.png")
+    plt.close()
+
+class VAE_Decoder(nn.Module):
+    def __init__(self, latent_dim):
+        super(VAE_Decoder, self).__init__()
+        self.dec1 = nn.Linear(latent_dim, 128)
+        self.dec2 = nn.Linear(128, 256)
+        self.dec3 = nn.Linear(256, 512)
+        self.dec4 = nn.Linear(512, 7 * 18 * 18)
+        self.relu = nn.ReLU()
+
+    def forward(self, z):
+        h = self.relu(self.dec1(z))
+        h = self.relu(self.dec2(h))
+        h = self.relu(self.dec3(h))
+        h = self.dec4(h)
+        return h.view(-1, 7, 18, 18)
+
+    # Define VAE
+class VAE(nn.Module):
+    def __init__(self):
+        super(VAE, self).__init__()
+
+        # Encoder
+        self.enc1 = nn.Linear(7 * 18 * 18, 512)
+        self.enc2 = nn.Linear(512, 256)
+        self.enc3 = nn.Linear(256, 128)
+        self.enc4 = nn.Linear(128, latent_dim * 2)
+
+        # Decoder
+        self.dec1 = nn.Linear(latent_dim, 128)
+        self.dec2 = nn.Linear(128, 256)
+        self.dec3 = nn.Linear(256, 512)
+        self.dec4 = nn.Linear(512, 7 * 18 * 18)
+
+        self.relu = nn.ReLU()
+
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
+
+    def forward(self, x):
+        x = x.view(x.size(0), -1)
+        h = self.relu(self.enc1(x))
+        h = self.relu(self.enc2(h))
+        h = self.relu(self.enc3(h))
+        h = self.enc4(h)
+
+        #bottleneck
+        mu, logvar = torch.chunk(h, 2, dim=1)
+        z = self.reparameterize(mu, logvar)
+
+        h = self.relu(self.dec1(z))
+        h = self.relu(self.dec2(h))
+        h = self.relu(self.dec3(h))
+        h = self.dec4(h)
+        return h.view(h.size(0), 7, 18, 18), mu, logvar
+
+# Loss Function
+def vae_loss(recon_x, x, mu, logvar, kld_weight):
+    BCE = nn.functional.binary_cross_entropy_with_logits(recon_x, x, reduction='sum')
+    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    return BCE + kld_weight * KLD, BCE, kld_weight * KLD
+
+def objective(trial):
+    # Hyperparameters to be optimized by Optuna
+
+    learning_rate = trial.suggest_loguniform('learning_rate', 0.00001, 0.1)
+    lr_decay = trial.suggest_loguniform('lr_decay', 0.00001, 0.01)
+    lr_decay_epoch = trial.suggest_int('lr_decay_epoch', 1000, 5000, step=500)
+    batch_size = trial.suggest_categorical('batch_size', [32, 64, 128, 256, 512])
+    kld_weight = trial.suggest_uniform('kld_weight', 0.01, 1.0)
+    kld_max = trial.suggest_uniform('kld_max', 0.5, 2.0)
+    kld_anneal_rate = trial.suggest_loguniform('kld_anneal_rate', 0.00001, 0.01)
+
+    # Load Data
+    train_data = load_preprocessed_maps(preprocessed_data_directory)
+    val_data = load_preprocessed_maps(validation_data_directory)
+    train_data = torch.tensor(train_data, dtype=torch.float32)
+    val_data = torch.tensor(val_data, dtype=torch.float32)
+    train_loader = DataLoader(TensorDataset(train_data), batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(TensorDataset(val_data), batch_size=batch_size)
+
+    # Initialize Model and Optimizer
+    model = VAE()
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+    # Training Loop
+    train_losses = []
+    val_losses = []
+    for epoch in range(1, num_epochs):  # Adjust the range based on your needs
+        model.train()
+        train_loss = 0
+        loss_BCE = 0
+        loss_KLD = 0
+        KLD_WEIGHT = min(kld_weight + kld_anneal_rate, kld_max)
+        for batch_idx, (data,) in enumerate(train_loader):
+            optimizer.zero_grad()
+            recon_batch, mu, logvar = model(data)
+            loss, loss_BCE_tmp, loss_KLD_tmp = vae_loss(recon_batch, data.permute(0, 3, 1, 2), mu, logvar, KLD_WEIGHT)
+            loss.backward()
+            train_loss += loss.item()
+            loss_BCE += loss_BCE_tmp.item()
+            loss_KLD += loss_KLD_tmp.item()
+            optimizer.step()
+
+        train_loss /= len(train_loader.dataset)
+        loss_BCE /= len(train_loader.dataset)
+        loss_KLD /= len(train_loader.dataset)
+        train_losses.append(train_loss)
+
+        # Validation
+        model.eval()
+        val_loss = 0
+        with torch.no_grad():
+            for i, (data,) in enumerate(val_loader):
+                recon_batch, mu, logvar = model(data)
+                val_loss_tmp, val_BCE, val_KLD = vae_loss(recon_batch, data.permute(0, 3, 1, 2), mu, logvar, KLD_WEIGHT)
+                val_loss += val_loss_tmp.item()
+
+        val_loss /= len(val_loader.dataset)
+        val_losses.append(val_loss)
+
+        current_lr = optimizer.param_groups[0]['lr']
+        print(
+            f"Epoch {epoch} - Train Loss: {train_loss:.4f} (BCE Loss: {loss_BCE:.4f} + KLD loss: {loss_KLD:.4f}), Validation Loss: {val_loss:.4f}, Learning Rate: {current_lr:.4f}")
+
+        # Learning rate decay
+        if epoch % lr_decay_epoch == 0:
+            for param_group in optimizer.param_groups:
+                param_group['lr'] *= (1 - lr_decay)
+
+    return train_losses[-1]
+
+# Main Function
+if __name__ == "__main__":
+    # Finding the best hyperparameters
+    # study = optuna.create_study(direction='minimize', sampler=optuna.samplers.TPESampler())
+    # study.optimize(objective, n_trials=100)  # Adjust the number of trials
+    # print("Best trial:")
+    # trial = study.best_trial
+    # print(f"  Value: {trial.value}")
+    # print("  Params: ")
+    # for key, value in trial.params.items():
+    #     print(f"    {key}: {value}")
+
+    # Load Data
+    train_data = load_preprocessed_maps(preprocessed_data_directory)
+    val_data = load_preprocessed_maps(validation_data_directory)
+
+    train_data = torch.tensor(train_data, dtype=torch.float32)
+    val_data = torch.tensor(val_data, dtype=torch.float32)
+
+    train_loader = DataLoader(TensorDataset(train_data), batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(TensorDataset(val_data), batch_size=batch_size)
+
+    # Initialize Model and Optimizer
+    model = VAE()
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+    # Training Loop
+    train_losses = []
+    val_losses = []
+    for epoch in range(1, num_epochs):  # Adjust the range based on your needs
+        model.train()
+        train_loss = 0
+        loss_BCE = 0
+        loss_KLD = 0
+        KLD_WEIGHT = min(kld_weight + kld_anneal_rate, kld_max)
+        for batch_idx, (data,) in enumerate(train_loader):
+            optimizer.zero_grad()
+            recon_batch, mu, logvar = model(data)
+            loss, loss_BCE_tmp, loss_KLD_tmp = vae_loss(recon_batch, data.permute(0, 3, 1, 2), mu, logvar, KLD_WEIGHT)
+            loss.backward()
+            train_loss += loss.item()
+            loss_BCE += loss_BCE_tmp.item()
+            loss_KLD += loss_KLD_tmp.item()
+            optimizer.step()
+
+        train_loss /= len(train_loader.dataset)
+        loss_BCE /= len(train_loader.dataset)
+        loss_KLD /= len(train_loader.dataset)
+        train_losses.append(train_loss)
+
+        # Validation
+        model.eval()
+        val_loss = 0
+        with torch.no_grad():
+            for i, (data,) in enumerate(val_loader):
+                recon_batch, mu, logvar = model(data)
+                val_loss_tmp, val_BCE, val_KLD = vae_loss(recon_batch, data.permute(0, 3, 1, 2), mu, logvar, KLD_WEIGHT)
+                val_loss += val_loss_tmp.item()
+
+        val_loss /= len(val_loader.dataset)
+        val_losses.append(val_loss)
+
+        current_lr = optimizer.param_groups[0]['lr']
+        print(f"Epoch {epoch} - Train Loss: {train_loss:.4f} (BCE Loss: {loss_BCE:.4f} + KLD loss: {loss_KLD:.4f}), Validation Loss: {val_loss:.4f}, Learning Rate: {current_lr}")
+
+        # Save model and plots
+        if epoch % save_step == 0:
+            save_model(model, torch.device("cpu"))  # Change to "cuda" if using GPU
+            save_plot(train_losses, val_losses, get_next_number())
+
+        # Learning rate decay
+        if epoch % lr_decay_epoch == 0:
+            for param_group in optimizer.param_groups:
+                param_group['lr'] *= (1 - lr_decay)

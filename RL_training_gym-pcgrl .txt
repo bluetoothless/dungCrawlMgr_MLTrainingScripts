@@ -1,0 +1,106 @@
+# Reinforcement learning usingamidos2006/gym-pcgrl
+!pip install git+https://github.com/amidos2006/gym-pcgrl.git
+
+import numpy as np
+from gym_pcgrl.envs.pcgrl_env import PcgrlEnv
+from gym_pcgrl.envs.helper import get_range_reward, get_int_map
+import os
+import json
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+import matplotlib.pyplot as plt
+from torch.distributions import Categorical
+from gym import Env, spaces
+from stable_baselines3 import PPO
+from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+from stable_baselines3 import PPO
+
+# Hyperparameters
+EPOCHS = 200
+LEARNING_RATE = 0.0005
+GAMMA = 0.99
+GAE_LAMBDA = 0.95
+PPO_EPOCHS = 4
+MINI_BATCH_SIZE = 64
+PPO_CLIP = 0.2
+SAVE_INTERVAL = 20
+TARGET_KL = 0.01
+MAX_STEPS = 100
+
+# Directories
+preprocessed_data_directory = "D:/Github/dungeonCrawlerMgr/LevelData/training_data_preprocessed/"
+results_directory = "D:/Github/dungeonCrawlerMgr/LevelData/results_VAE/"
+
+def load_preprocessed_maps(directory):
+    maps = []
+    for filename in os.listdir(directory):
+        if filename.endswith(".json"):
+            with open(os.path.join(directory, filename), 'r') as f:
+                data = json.load(f)
+                maps.append(np.array(data["LevelTileArray"]))
+    return maps
+
+class CustomCNN(BaseFeaturesExtractor):
+    def __init__(self, observation_space: spaces.Box, features_dim: int = 128):
+        super(CustomCNN, self).__init__(observation_space, features_dim)
+        self.cnn = nn.Sequential(
+            nn.Conv2d(7, 16, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Flatten()
+        )
+
+    def forward(self, x):
+        return self.cnn(x)
+
+class DungeonCrawlerEnv(PcgrlEnv):
+    def __init__(self):
+        super().__init__()
+
+    def _get_observation_space(self):
+        return self._get_box_space(7) # 7 tile types
+
+    def _get_action_space(self):
+        return self._get_box_space(7)
+
+    def _get_int_map(self):
+        return get_int_map(self._map, self._tile_types)
+
+    def _load_map(self):
+        self._map = np.random.choice(self.maps)
+        return self._get_observation_space().sample()
+
+    def _get_reward(self):
+        reward, _ = get_range_reward(self._get_int_map(), 1, 0.35, 0.45)
+        return reward * 0.8
+
+    def _get_end_episode(self):
+        return self._get_current_step() > self._params['max_step']
+
+    def _get_total_actions(self):
+        return 20 * 20 * 7 # 20x20 map with 7 tile types
+
+    def _get_current_step(self):
+        return self.current_step
+
+    def _reset_current_step(self):
+        self.current_step = 0
+
+    def _update_map(self, action):
+        x, y, t = self._get_action_xy(action)
+        self.current_map[x, y] = np.eye(7)[t]
+        self.current_step += 1
+
+maps = load_preprocessed_maps(preprocessed_data_directory)
+env = DungeonCrawlerEnv(maps)
+policy_kwargs = dict(
+    features_extractor_class=CustomCNN,
+    features_extractor_kwargs=dict(features_dim=128)
+)
+model = PPO("CnnPolicy", env, policy_kwargs=policy_kwargs, verbose=1)   # Proximal Policy Optimization (PPO)
+for epoch in range(EPOCHS):
+    model.learn(total_timesteps=2000)
+
+    if epoch % SAVE_INTERVAL == 0:
+        model.save(os.path.join(results_directory, f"ppo_model_epoch{epoch}.onnx"))

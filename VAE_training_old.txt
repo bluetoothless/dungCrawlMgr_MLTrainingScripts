@@ -1,0 +1,179 @@
+import os
+import json
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import torch.onnx
+import onnx
+import onnxruntime as ort
+import matplotlib.pyplot as plt
+
+preprocessed_data_directory = "D:/Github/dungeonCrawlerMgr/LevelData/training_data_preprocessed/"
+results_directory = "D:/Github/dungeonCrawlerMgr/LevelData/results_VAE/"
+validation_data_directory = "D:/Github/dungeonCrawlerMgr/LevelData/validation_data_preprocessed/"
+train_losses = []
+val_losses = []
+
+# HYPERPARAMETERS
+nr_of_epochs = 5000
+save_model_step = 100  # save model after every x epochs
+batch_size = 128
+learning_rate = 0.0005
+step_size = 200
+gamma = 0.9     # After [step_size] epochs, [learning_rate] = [learning_rate] * [gamma]
+# (learning_rate = 0.0001), batch_size    128 -> w ep. 230 Loss = 534, Vali_Loss = 551;    64 -> w ep. 230 Loss = 495, Vali_Loss = 541;     32 -> w ep. 230 Loss = 442, Vali_Loss = 531;
+# (learning_rate = 0.0005), batch_size    128 -> w ep. 230 Loss = 395, Vali_Loss = 540;    64 -> w ep. 230 Loss = 267, Vali_Loss = 619;     32 -> w ep. 230 Loss = 213, Vali_Loss = 723;
+# (learning_rate = 0.001), batch_size    128 -> w ep. 230 Loss = 250, Vali_Loss = 671;    64 -> w ep. 230 Loss = 173, Vali_Loss = 807;
+
+
+#reconstruction accuracy
+
+# Data loading
+def load_preprocessed_maps(directory):
+    maps = []
+    for filename in os.listdir(directory):
+        if filename.endswith(".json"):
+            with open(os.path.join(directory, filename), 'r') as f:
+                data = json.load(f)
+                maps.append(data["LevelTileArray"])
+    return maps
+
+def load_validation_data(directory):
+    maps = []
+    for filename in os.listdir(directory):
+        if filename.endswith(".json"):
+            with open(os.path.join(directory, filename), 'r') as f:
+                data = json.load(f)
+                maps.append(data["LevelTileArray"])
+    return maps
+
+# Defining VAE Architecture
+class VAE(nn.Module):
+    def __init__(self):
+        super(VAE, self).__init__()
+
+        self.fc1 = nn.Linear(20*20*7, 512)  # 20*20*7=2800
+        self.fc21 = nn.Linear(512, 128)
+        self.fc22 = nn.Linear(512, 128)
+        self.fc3 = nn.Linear(128, 512)
+        self.fc4 = nn.Linear(512, 20*20*7)
+
+    def encode(self, x):
+        h1 = F.relu(self.fc1(x))
+        return self.fc21(h1), self.fc22(h1)
+
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
+
+    def decode(self, z):
+        h3 = F.relu(self.fc3(z))
+        return torch.sigmoid(self.fc4(h3))
+
+    def forward(self, x):
+        mu, logvar = self.encode(x.view(-1, 2800))
+        z = self.reparameterize(mu, logvar)
+        return self.decode(z), mu, logvar
+
+# Loss Function
+def loss_function(recon_x, x, mu, logvar):
+    BCE = F.binary_cross_entropy(recon_x, x.view(-1, 2800), reduction='sum')
+    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    return BCE + KLD
+
+# Training Loop
+def train_vae(model, dataset, val_dataset, epochs, batch_size, device, lr, step_size, gamma):
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=step_size, gamma=gamma)  # Step-based Learning rate decay
+
+    for epoch in range(epochs):
+        model.train()
+        train_loss = 0
+        for i in range(0, len(dataset), batch_size):
+            batch_data = torch.tensor(dataset[i:i + batch_size]).to(device)
+            #batch_data = torch.tensor(dataset[i:i + batch_size])
+            optimizer.zero_grad()
+            recon_batch, mu, logvar = model(batch_data.float())
+            loss = loss_function(recon_batch, batch_data.float(), mu, logvar)
+            loss.backward()
+            train_loss += loss.item()
+            optimizer.step()
+
+        # Validation loss
+        model.eval()
+        val_loss = 0
+        with torch.no_grad():
+            for i in range(0, len(val_dataset), batch_size):
+                batch_data = torch.tensor(val_dataset[i:i + batch_size]).to(device)
+                recon_batch, mu, logvar = model(batch_data.float())
+                val_loss += loss_function(recon_batch, batch_data.float(), mu, logvar).item()
+
+        # Learning rate
+        cur_lr = optimizer.param_groups[0]['lr']
+        scheduler.step()
+
+        print(f"Epoch {epoch + 1}: Loss = {train_loss / len(dataset):.3f}, Validation Loss: {val_loss / len(val_dataset):.3f}, Learning Rate: {cur_lr}")
+
+        train_losses.append(train_loss / len(dataset))
+        val_losses.append(val_loss / len(val_dataset))
+        if epoch % save_model_step == 0 or epoch == 500 or epoch == 1000:
+            save_model(model)
+            save_plot(train_losses, val_losses, get_next_number() - 1)
+
+def save_model(model):
+    dummy_input = torch.randn(1, 2800).to(device)  # Assuming the input size to the model is [1, 2800]
+    next_number = get_next_number()
+    file_path = results_directory + f"VAE_model_{next_number}.onnx"
+    torch.onnx.export(model, dummy_input, file_path, verbose=True)
+
+def save_plot(train_losses, val_losses, number):
+    plt.figure()
+    plt.plot(val_losses, label="Validation Loss", color='red')
+    plt.plot(train_losses, label="Training Loss", color='blue')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.savefig(results_directory + f"VAE_plot_{number}.png")
+    plt.close()
+
+def get_next_number():
+    files = os.listdir(results_directory)
+    max_num = -1
+    for file in files:
+        if "VAE_model_" in file:
+            try:
+                num = int(file.split("_")[-1].split(".")[0])
+                max_num = max(max_num, num)
+            except ValueError:
+                pass
+    return max_num + 1
+
+def load_previous_model(file_path):
+    onnx_model = onnx.load(file_path)
+    onnx.checker.check_model(onnx_model)
+    torch_model = VAE()  # You'd initialize your model here, then load the appropriate state_dict.
+    return torch_model
+
+choice = input("Do you want to (Enter 1 or 2): \n(1) Start new training \n(2) Continue previous training\n")
+if choice == "1":
+    model = VAE()
+elif choice == "2":
+    model_path = results_directory + f"VAE_model_{get_next_number() - 1}.onnx"
+    model = load_previous_model(model_path)
+else:
+    print("Invalid choice.")
+    exit()
+
+if torch.cuda.is_available():
+    print("Training with GPU...")
+    device = torch.device("cuda")
+    model.to(device)
+else:
+    device = torch.device("cpu")
+maps = load_preprocessed_maps(preprocessed_data_directory)
+validation_maps = load_validation_data(validation_data_directory)
+
+train_vae(model, maps, validation_maps, nr_of_epochs, batch_size, device=device, lr=learning_rate, step_size=step_size, gamma=gamma)
+

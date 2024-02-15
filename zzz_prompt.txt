@@ -1,0 +1,75 @@
+I want to create a variational autoencoder that generates new dungeon maps using pytorch. I have a dataset that consists of 1000 exmaple dungeon crawler maps. The maps are representations of game levels, saved in .json format. They are grids of 20x20 tiles, and each tile can be one of 7 types: 0, 1, 2, 3, 4, 5 or 6. The maps are preprocessed to contain one-hot vectors instead of straight up tile values. An example preprocessed map looks like this:
+{
+	"LevelTileArray": [
+		[[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0],[0,1,0,0,0,0,0]],
+...
+
+The VAE should consist of an encoder and decoder of 4 fully-connected layers each, with ReLU
+activation. Model should be trained with the Adam optimizer and a learning rate of 0.001 decayed every 2500 epochs by 0.01. The latent dimension size should be 32.
+The hyperparameters should be global and declared at the top of the python file.
+The data should be loaded like this:
+def load_preprocessed_maps(directory):
+    maps = []
+    for filename in os.listdir(directory):
+        if filename.endswith(".json"):
+            with open(os.path.join(directory, filename), 'r') as f:
+                data = json.load(f)
+                maps.append(data["LevelTileArray"])
+    return maps
+The data should be taken from these directories:
+preprocessed_data_directory = "D:/Github/dungeonCrawlerMgr/LevelData/training_data_preprocessed/"
+validation_data_directory = "D:/Github/dungeonCrawlerMgr/LevelData/validation_data_preprocessed/"
+And the results should be saved in this directory:
+results_directory = "D:/Github/dungeonCrawlerMgr/LevelData/results_VAE/"
+
+The model should be saved every 100 epochs, and at the same time, a plot of training so far should be saved:
+def save_model(model):
+    #dummy_input = torch.randn(1, 2800).to(device)  # Assuming the input size to the model is [1, 2800]
+    next_number = get_next_number()
+    torch.save(model.state_dict(), f"{results_directory}model_{next_number}.pt")
+    dummy_input = torch.randn([1, 7, 20, 20]).to(device)
+    file_path = results_directory + f"VAE_model_{next_number}.onnx"
+    torch.onnx.export(model, dummy_input, file_path, verbose=True)
+
+def get_next_number():
+    files = os.listdir(results_directory)
+    max_num = -1
+    for file in files:
+        if "VAE_model_" in file:
+            try:
+                num = int(file.split("_")[-1].split(".")[0])
+                max_num = max(max_num, num)
+            except ValueError:
+                pass
+    return max_num + 1
+
+def save_plot(train_losses, val_losses, number):
+    plt.figure()
+    plt.plot(val_losses, label="Validation Loss", color='red')
+    plt.plot(train_losses, label="Training Loss", color='blue')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.savefig(results_directory + f"VAE_plot_{number}.png")
+    plt.close()
+
+At the begining, the program should ask to choose between starting training anew or continuing from last model:
+choice = input("Do you want to (Enter 1 or 2): \n(1) Start new training \n(2) Continue previous training\n")
+if choice == "1":
+    model = VAE()
+elif choice == "2":
+    model_path = results_directory + f"model_{get_next_number() - 1}.pt"
+    model = VAE()
+    model.load_state_dict(torch.load(model_path))
+else:
+    print("Invalid choice.")
+    exit()
+
+if torch.cuda.is_available():
+    print("Training with GPU...")
+    device = torch.device("cuda")
+    model.to(device)
+else:
+    device = torch.device("cpu")
+
+Please write the whole code in python and show it. If you need more than one response to write it, ask for more responses.
