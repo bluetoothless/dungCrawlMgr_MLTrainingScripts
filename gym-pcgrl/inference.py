@@ -81,21 +81,21 @@ def infer(game, representation, model_path, **kwargs):
                 results_file = f'generation_results.json'
                 with open(results_file, 'w') as f:
                     json.dump(generated_map, f, indent=4)
-                with open(results_file, 'r') as f:
-                    data = json.load(f)
-                level_tile_array = convert_terminal_observation(data['terminal_observation'])
-                for row in level_tile_array:
-                    print(f"{row}")
-                print("\n")
-                level_tile_array = convert_terminal_observation2(data['terminal_observation'])
-                for row in level_tile_array:
-                    print(f"{row}")
-                level_tile_array_padded = pad_array(level_tile_array, 1)
-                data = { "LevelTileArray": level_tile_array_padded }
-                with open('generated_map.json', 'w') as f:
-                    json_str = json.dumps(data, separators=(',', ':'))
-                    formatted_str = json_str.replace('],', '],\n\t\t').replace('[[', '[\n\t\t[').replace(']]', ']\n\t]')
-                    f.write('{\n\t' + formatted_str[1:-1] + '\n}')
+                # with open(results_file, 'r') as f:
+                #     data = json.load(f)
+                # level_tile_array = convert_terminal_observation(data['terminal_observation'])
+                # for row in level_tile_array:
+                #     print(f"{row}")
+                # print("\n")
+                # level_tile_array = convert_terminal_observation2(data['terminal_observation'])
+                # for row in level_tile_array:
+                #     print(f"{row}")
+                # level_tile_array_padded = pad_array(level_tile_array, 1)
+                # data = { "LevelTileArray": level_tile_array_padded }
+                # with open('generated_map.json', 'w') as f:
+                #     json_str = json.dumps(data, separators=(',', ':'))
+                #     formatted_str = json_str.replace('],', '],\n\t\t').replace('[[', '[\n\t\t[').replace(']]', ']\n\t]')
+                #     f.write('{\n\t' + formatted_str[1:-1] + '\n}')
                 break
         time.sleep(0.2)
 

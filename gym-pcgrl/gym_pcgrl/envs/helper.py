@@ -374,3 +374,25 @@ def get_range_reward(new_value, old_value, low, high):
         return high - new_value + old_value - low
     if new_value < low and old_value > high:
         return high - old_value + new_value - low
+
+def convert_and_pad_map(level_tile_array):
+    tile_mapping = {
+        "EmptyTile": 0,
+        "WallTile": 1,
+        "PlayerStartTile": 2,
+        "PlayerEndTile": 3,
+        "EnemyTile": 4,
+        "TreasureTile": 5,
+        "TrapTile": 6
+    }
+    mapped_array = []
+    for row in level_tile_array:
+        mapped_row = [tile_mapping.get(tile, tile) for tile in row]
+        mapped_array.append(mapped_row)
+    new_height = len(mapped_array) + 2
+    new_width = len(mapped_array[0]) + 2
+    level_tile_array_padded = [[1 for _ in range(new_width)] for _ in range(new_height)]
+    for i, row in enumerate(mapped_array):
+        for j, value in enumerate(row):
+            level_tile_array_padded[i + 1][j + 1] = value
+    return level_tile_array_padded
