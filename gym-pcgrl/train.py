@@ -49,13 +49,18 @@ def callback(_locals, _globals):
 
 
 def main(game, representation, experiment, steps, n_cpu, render, logging, **kwargs):
+    # config = tf.ConfigProto()
+    # config.gpu_options.allow_growth = True
+    # session = tf.Session(config=config)
     env_name = '{}-{}-v0'.format(game, representation)
     exp_name = get_exp_name(game, representation, experiment, **kwargs)
     resume = kwargs.get('resume', False)
     if representation == 'wide':
         policy = FullyConvPolicyBigMap
         if game == "sokoban":
-            policy = FullyConvPolicySmallMap
+            policy = FullyConvPolicyBigMap
+        if game == "quitebrightdungeon":
+            policy = FullyConvPolicyBigMap
     else:
         policy = CustomPolicyBigMap
         if game == "sokoban":
@@ -66,6 +71,9 @@ def main(game, representation, experiment, steps, n_cpu, render, logging, **kwar
         kwargs['cropped_size'] = 22
     elif game == "sokoban":
         kwargs['cropped_size'] = 10
+    elif game == "quitebrightdungeon":
+        print("Training for QuiteBrightDungeon")
+        kwargs['cropped_size'] = 18
     n = max_exp_idx(exp_name)
     global log_dir
     if not resume:
@@ -86,6 +94,7 @@ def main(game, representation, experiment, steps, n_cpu, render, logging, **kwar
     env = make_vec_envs(env_name, representation, log_dir, n_cpu, **kwargs)
     if not resume or model is None:
         model = PPO2(policy, env, verbose=1, tensorboard_log="./runs")
+        #model = PPO2(policy, env, verbose=1, tensorboard_log="./runs")
     else:
         model.set_env(env)
     if not logging:
@@ -94,13 +103,13 @@ def main(game, representation, experiment, steps, n_cpu, render, logging, **kwar
         model.learn(total_timesteps=int(steps), tb_log_name=exp_name, callback=callback)
 
 ################################## MAIN ########################################
-game = 'binary'
+game = 'quitebrightdungeon'
 representation = 'narrow'
 experiment = None
 steps = 1e8
 render = False
 logging = True
-n_cpu = 50
+n_cpu = 4
 kwargs = {
     'resume': False
 }

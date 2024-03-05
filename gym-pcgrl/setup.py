@@ -1,10 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='gym_pcgrl',
       version='0.4.0',
+      packages=find_packages(include=['gym_pcgrl', 'gym_pcgrl.*']),
       install_requires=['gym', 'numpy>=1.17', 'pillow'],
       author="Ahmed Khalifa",
       author_email="ahmed@akhalifa.com",

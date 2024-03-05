@@ -20,12 +20,12 @@ class QuiteBrightDungeonProblem(Problem):
         self._height = 18
         self._prob = {
             "EmptyTile": 0.4,
-            "WallTile":0.54,
-            "PlayerStartTile":0.0025,
-            "PlayerEndTile": 0.0025,
-            "EnemyTile": 0.03,
+            "WallTile":0.4,
+            "PlayerStartTile":0.02,
+            "PlayerEndTile": 0.02,
+            "EnemyTile": 0.02,
             "TreasureTile": 0.02,
-            "TrapTile": 0.007
+            "TrapTile": 0.02
         }
         self._border_tile = "WallTile"
 
@@ -34,20 +34,19 @@ class QuiteBrightDungeonProblem(Problem):
         self._max_traps = 6
 
         self._target_enemy_dist = 1
-        self._target_treasure_dist = 3
-        self._target_path = 32
+        self._target_treasure_dist = 2
 
         self._rewards = {
             "PlayerStartTile": 6,
             "PlayerEndTile": 6,
-            "TreasureTile": 2,
-            "EnemyTile": 2,
-            "TrapTile": 2,
-            "nearest-enemy-or-trap": 1,
-            "too-close-treasure-pairs": 1,
+            "TreasureTile": 3,
+            "EnemyTile": 3,
+            "TrapTile": 3,
+            "nearest-enemy-or-trap": 2,
+            "too-close-treasure-pairs": 2,
             "regions": 7,
             "path-length": 1,
-            #"walls-not-connected": -4
+            #"walls-not-connected": 4
         }
 
     """
@@ -58,31 +57,6 @@ class QuiteBrightDungeonProblem(Problem):
     """
     def get_tile_types(self):
         return ["EmptyTile", "WallTile", "PlayerStartTile", "PlayerEndTile", "EnemyTile", "TreasureTile", "TrapTile"]
-
-    """
-    Adjust the parameters for the current problem
-
-    Parameters:
-        width (int): change the width of the problem level
-        height (int): change the height of the problem level
-        probs (dict(string, float)): change the probability of each tile
-        intialization, the names are "EmptyTile", "WallTile"
-        target_path (int): the current path length that the episode turn when it reaches
-        rewards (dict(string,float)): the weights of each reward change between the new_stats and old_stats
-    """
-    def adjust_param(self, **kwargs):
-        super().adjust_param(**kwargs)
-
-        self._max_enemies = kwargs.get('max_enemies', self._max_enemies)
-
-        self._target_enemy_dist = kwargs.get('target_enemy_dist', self._target_enemy_dist)
-        self._target_path = kwargs.get('target_path', self._target_path)
-
-        rewards = kwargs.get('rewards')
-        if rewards is not None:
-            for t in rewards:
-                if t in self._rewards:
-                    self._rewards[t] = rewards[t]
 
     """
     Get the current stats of the map
