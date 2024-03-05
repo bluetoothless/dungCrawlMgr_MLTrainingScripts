@@ -150,3 +150,18 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+gym-pcgrl/log_narrow1.txt
+gym-pcgrl/cuda_10.0.130_win10_network.exe
+gym-pcgrl/cudnn-10.0-windows10-x64-v7.6.0.64.zip
+gym-pcgrl/log_wide1.txt
+gym-pcgrl/log_wide2.txt
+gym-pcgrl/models/quitebrightdungeon/narrow/model_1.pkl
+gym-pcgrl/models/quitebrightdungeon/narrow/model_2.pkl
+gym-pcgrl/models/quitebrightdungeon/turtle/model.pkl
+gym-pcgrl/models/quitebrightdungeon/wide/model_1.pkl
+gym-pcgrl/models/quitebrightdungeon/wide/model_2.pkl
+gym-pcgrl/models/quitebrightdungeon/wide/test_models/model__mean_102.pkl
+gym-pcgrl/models/quitebrightdungeon/wide/test_models/model__mean_121.pkl
+gym-pcgrl/models/quitebrightdungeon/wide/test_models/model__mean_127.pkl
+gym-pcgrl/models/quitebrightdungeon/wide/test_models/model__mean_61.pkl
+gym-pcgrl/models/quitebrightdungeon/wide/test_models/model_last__mean_97.pkl
