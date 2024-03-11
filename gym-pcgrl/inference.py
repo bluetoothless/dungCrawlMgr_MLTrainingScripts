@@ -21,22 +21,22 @@ def convert_np_array_to_list(obj):
         return [convert_np_array_to_list(element) for element in obj]
     else:
         return obj
-
-def one_hot_to_digit(one_hot_vector):
-    return int(np.argmax(one_hot_vector))
-def convert_terminal_observation2(terminal_observation):
-    return [[one_hot_to_digit(vector) for vector in row] for row in terminal_observation]
-def convert_terminal_observation(terminal_observation):
-    return [[sublist.index(1.0) for sublist in outer_list] for outer_list in terminal_observation]
-
-def pad_array(array, pad_width, pad_value=1):
-    new_height = len(array) + (2 * pad_width)
-    new_width = len(array[0]) + (2 * pad_width)
-    padded_array = [[pad_value for _ in range(new_width)] for _ in range(new_height)]
-    for i, row in enumerate(array):
-        for j, value in enumerate(row):
-            padded_array[i + pad_width][j + pad_width] = value
-    return padded_array
+#
+# def one_hot_to_digit(one_hot_vector):
+#     return int(np.argmax(one_hot_vector))
+# def convert_terminal_observation2(terminal_observation):
+#     return [[one_hot_to_digit(vector) for vector in row] for row in terminal_observation]
+# def convert_terminal_observation(terminal_observation):
+#     return [[sublist.index(1.0) for sublist in outer_list] for outer_list in terminal_observation]
+#
+# def pad_array(array, pad_width, pad_value=1):
+#     new_height = len(array) + (2 * pad_width)
+#     new_width = len(array[0]) + (2 * pad_width)
+#     padded_array = [[pad_value for _ in range(new_width)] for _ in range(new_height)]
+#     for i, row in enumerate(array):
+#         for j, value in enumerate(row):
+#             padded_array[i + pad_width][j + pad_width] = value
+#     return padded_array
 
 def infer(game, representation, model_path, **kwargs):
     """
@@ -78,7 +78,7 @@ def infer(game, representation, model_path, **kwargs):
                 print(info[0])
             if dones:
                 generated_map = convert_np_array_to_list(info[0])
-                results_file = f'generation_results.json'
+                results_file = f'results/generation_results.json'
                 with open(results_file, 'w') as f:
                     json.dump(generated_map, f, indent=4)
                 # with open(results_file, 'r') as f:
@@ -101,10 +101,10 @@ def infer(game, representation, model_path, **kwargs):
 
 ################################## MAIN ########################################
 game = 'quitebrightdungeon'
-representation = 'narrow'
-model_path = 'models/{}/{}/model_2.pkl'.format(game, representation)
+representation = 'wide'
+model_path = 'models/{}/{}/model_4_rew236.pkl'.format(game, representation)
 kwargs = {
-    'change_percentage': 0.4,
+    'change_percentage': 0.2,
     'trials': 1,
     'verbose': True
 }

@@ -19,13 +19,13 @@ class QuiteBrightDungeonProblem(Problem):
         self._width = 18
         self._height = 18
         self._prob = {
-            "EmptyTile": 0.4,
-            "WallTile":0.54,
-            "PlayerStartTile":0.0025,
-            "PlayerEndTile": 0.0025,
-            "EnemyTile": 0.03,
-            "TreasureTile": 0.02,
-            "TrapTile": 0.007
+            "EmptyTile": 0.4967,
+            "WallTile": 0.4361,
+            "PlayerStartTile": 0.0031,
+            "PlayerEndTile": 0.0031,
+            "EnemyTile": 0.0282,
+            "TreasureTile": 0.0237,
+            "TrapTile": 0.0091
         }
         self._border_tile = "WallTile"
 

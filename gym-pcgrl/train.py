@@ -94,7 +94,6 @@ def main(game, representation, experiment, steps, n_cpu, render, logging, **kwar
     env = make_vec_envs(env_name, representation, log_dir, n_cpu, **kwargs)
     if not resume or model is None:
         model = PPO2(policy, env, verbose=1, tensorboard_log="./runs")
-        #model = PPO2(policy, env, verbose=1, tensorboard_log="./runs")
     else:
         model.set_env(env)
     if not logging:
@@ -104,7 +103,7 @@ def main(game, representation, experiment, steps, n_cpu, render, logging, **kwar
 
 ################################## MAIN ########################################
 game = 'quitebrightdungeon'
-representation = 'narrow'
+representation = 'wide'
 experiment = None
 steps = 1e8
 render = False
