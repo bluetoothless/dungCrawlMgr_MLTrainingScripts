@@ -1,0 +1,7 @@
+{
+    "PlayerStartTile": 1,
+    "PlayerEndTile": 0,
+    "TreasureTile": 7,
+    "EnemyTile": 8,
+    "TrapTile": 2,
+    "nearest-enemy-or-trap": 

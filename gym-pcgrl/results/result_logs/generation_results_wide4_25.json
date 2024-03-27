@@ -1,0 +1,16 @@
+{
+    "PlayerStartTile": 0,
+    "PlayerEndTile": 0,
+    "TreasureTile": 9,
+    "EnemyTile": 5,
+    "TrapTile": 2,
+    "nearest-enemy-or-trap": 0,
+    "too-close-treasure-pairs": 0,
+    "regions": 1,
+    "path-length": 0,
+    "iterations": 139,
+    "changes": 64,
+    "max_iterations": 20736,
+    "max_changes": 64,
+    "episode": {
+        "r": 
