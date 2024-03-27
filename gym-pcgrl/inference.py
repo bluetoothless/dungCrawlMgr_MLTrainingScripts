@@ -8,6 +8,7 @@ import time
 from utils import make_vec_envs
 import json
 import numpy as np
+from gym_pcgrl.envs.helper import get_last_number
 
 def convert_np_array_to_list(obj):
     """
@@ -78,7 +79,8 @@ def infer(game, representation, model_path, **kwargs):
                 print(info[0])
             if dones:
                 generated_map = convert_np_array_to_list(info[0])
-                results_file = f'results/generation_results.json'
+                new_number = get_last_number() + 1
+                results_file = f'results/result_logs/generation_results_wide4_{new_number}.json'
                 with open(results_file, 'w') as f:
                     json.dump(generated_map, f, indent=4)
                 # with open(results_file, 'r') as f:

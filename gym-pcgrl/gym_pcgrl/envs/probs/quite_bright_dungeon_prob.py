@@ -101,7 +101,7 @@ class QuiteBrightDungeonProblem(Problem):
             "TrapTile": calc_certain_tile(map_locations, ["TrapTile"]),
             "nearest-enemy-or-trap": 0,
             "too-close-treasure-pairs": 0,
-            "regions": calc_num_regions(map, map_locations, ["EmptyTile", "PlayerStartTile", "EnemyTile", "TreasureTile", "TrapTile"]),
+            "regions": calc_num_regions(map, map_locations, ["EmptyTile", "PlayerStartTile", "PlayerEndTile", "EnemyTile", "TreasureTile", "TrapTile"]),
             "path-length": 0
         }
         if map_stats["PlayerStartTile"] == 1 and map_stats["regions"] == 1:
@@ -130,7 +130,7 @@ class QuiteBrightDungeonProblem(Problem):
                         distance = abs(x2 - x1) + abs(y2 - y1)
                         if distance < self._target_treasure_dist:
                             count += 1
-            map_stats["distance-between-treasure"] = count
+            map_stats["too-close-treasure-pairs"] = count
         return map_stats
 
     """

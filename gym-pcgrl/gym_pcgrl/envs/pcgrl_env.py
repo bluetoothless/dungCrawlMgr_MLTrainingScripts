@@ -1,6 +1,6 @@
 from gym_pcgrl.envs.probs import PROBLEMS
 from gym_pcgrl.envs.reps import REPRESENTATIONS
-from gym_pcgrl.envs.helper import get_int_prob, get_string_map, convert_and_pad_map
+from gym_pcgrl.envs.helper import get_int_prob, get_string_map, convert_and_pad_map, get_last_number
 import numpy as np
 import gym
 from gym import spaces
@@ -163,13 +163,13 @@ class PcgrlEnv(gym.Env):
         tile_size=16
         img = self._prob.render(get_string_map(self._rep._map, self._prob.get_tile_types()))
         img = self._rep.render(img, self._prob._tile_size, self._prob._border_size).convert("RGB")
-
-        img.save("./results/generation_results_image.jpg")
+        new_number = get_last_number() + 1
+        img.save(f"./results/imgs/generated_map_wide4_{new_number}.jpg")
         level_tile_array = get_string_map(self._rep._map, self._prob.get_tile_types())
         level_tile_array_padded = convert_and_pad_map(level_tile_array)
         #print(f"\n\nlevel_tile_array_padded:\n{level_tile_array_padded}")
         data = { "LevelTileArray": level_tile_array_padded }
-        with open('./results/generated_map.json', 'w') as f:
+        with open(f'./results/generated_map_wide4_{new_number}.json', 'w') as f:
             json_str = json.dumps(data, separators=(',', ':'))
             formatted_str = json_str.replace('],', '],\n\t\t').replace('[[', '[\n\t\t[').replace(']]', ']\n\t]')
             f.write('{\n\t' + formatted_str[1:-1] + '\n}')

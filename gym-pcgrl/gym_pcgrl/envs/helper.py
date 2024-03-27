@@ -2,6 +2,7 @@
 A helper module that can be used by all problems
 """
 import numpy as np
+import os
 
 """
 Public function to get a dictionary of all location of all tiles
@@ -396,3 +397,15 @@ def convert_and_pad_map(level_tile_array):
         for j, value in enumerate(row):
             level_tile_array_padded[i + 1][j + 1] = value
     return level_tile_array_padded
+
+def get_last_number():
+    files = os.listdir("./results/result_logs/")
+    max_num = 0
+    for file in files:
+        if "generat" in file:
+            try:
+                num = int(file.split("_")[-1].split(".")[0])
+                max_num = max(max_num, num)
+            except ValueError:
+                pass
+    return max_num
