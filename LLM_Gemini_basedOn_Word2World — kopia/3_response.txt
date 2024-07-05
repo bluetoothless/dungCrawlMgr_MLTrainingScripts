@@ -1,0 +1,130 @@
+Extracting tilemap..
+
+
+####################
+#                  #
+# @                #
+#                  #
+#                  #
+#                  #
+#           $       #
+#                  #
+#                  #
+#                  #
+#                  #
+#     &              #
+#                  #
+#                  #
+#                  #
+#       $            #
+#                  #
+#                  #
+#    P               #
+####################
+
+
+Fixing tilemap..
+#
+
+@
+
+
+
+$
+
+
+
+
+&
+
+
+
+
+
+
+P
+
+Evaluating World...
+check#1 done = False
+parsed_grid: [['#'], [], ['@'], [], [], [], ['$'], [], [], [], [], ['&'], [], [], [], [], [], [], ['P']]
+Evaluation:
+ {'Correct Walkable Paths': 75, 'Aesthetics': 85, 'Placement of Environment Tiles': 90, 'Placement of Character Tiles': 95, 'Placement of Objects that Fulfill Goals': 100, 'Adherence to Story': 75, 'Accuracy_of_characters_placed': 200.0, 'Accuracy_of_important_tiles_placed': 0, 'Average_euclidean_distance': 0}
+
+Generating Actions...
+Objectives:
+
+```python
+objectives = {
+    'Find the most treasure': ['$'],
+    'Defeat the most enemies': ['&'],
+    'Avoid traps': ['!'],
+    'Go the furthest into the dungeon': ['P'],
+    'Avoid dying': ['@']
+}
+```
+
+
+objective_tile in a dict:
+
+{'Find the most treasure': ['$'], 'Defeat the most enemies': ['&'], 'Avoid traps': ['!'], 'Go the furthest into the dungeon': ['P'], 'Avoid dying': ['@']}
+
+
+str_obj: ['$']
+temp_list = ['$']
+str_obj: ['&']
+temp_list = ['&']
+str_obj: ['!']
+temp_list = ['!']
+str_obj: ['P']
+temp_list = ['P']
+str_obj: ['@']
+temp_list = ['@']
+AStar iterations number: 1
+Exception raised: not enough values to unpack (expected 5, got 3)
+ Traceback (most recent call last):
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\gemini_action_generation.py", line 92, in action_generation
+    astar_path, _, _, game_map_updated, _ = astar_agent.getSolution(game_state,maxIterations=10000)
+ValueError: not enough values to unpack (expected 5, got 3)
+
+AStar iterations number: 1
+Exception raised: not enough values to unpack (expected 5, got 3)
+ Traceback (most recent call last):
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\gemini_action_generation.py", line 92, in action_generation
+    astar_path, _, _, game_map_updated, _ = astar_agent.getSolution(game_state,maxIterations=10000)
+ValueError: not enough values to unpack (expected 5, got 3)
+
+AStar iterations number: 1
+Exception raised: not enough values to unpack (expected 5, got 3)
+ Traceback (most recent call last):
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\gemini_action_generation.py", line 92, in action_generation
+    astar_path, _, _, game_map_updated, _ = astar_agent.getSolution(game_state,maxIterations=10000)
+ValueError: not enough values to unpack (expected 5, got 3)
+
+AStar iterations number: 1
+Exception raised: not enough values to unpack (expected 5, got 3)
+ Traceback (most recent call last):
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\gemini_action_generation.py", line 92, in action_generation
+    astar_path, _, _, game_map_updated, _ = astar_agent.getSolution(game_state,maxIterations=10000)
+ValueError: not enough values to unpack (expected 5, got 3)
+
+AStar iterations number: 1
+Exception raised: not enough values to unpack (expected 5, got 3)
+ Traceback (most recent call last):
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\gemini_action_generation.py", line 92, in action_generation
+    astar_path, _, _, game_map_updated, _ = astar_agent.getSolution(game_state,maxIterations=10000)
+ValueError: not enough values to unpack (expected 5, got 3)
+
+astar_path: 0
+Exception raised: Not all rows in the map have the same length
+ Traceback (most recent call last):
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\gemini_action_generation.py", line 112, in action_generation
+    env = GeminiEnv(walkable_tiles_list, world_map_fixed, world_map_fixed_with_chars, object_tiles_list, "&")
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\gemini_env.py", line 72, in __init__
+    self.reset()
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\gemini_env.py", line 81, in reset
+    return self.get_state()
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\gemini_env.py", line 150, in get_state
+    assert len(set(row_lengths)) == 1, "Not all rows in the map have the same length"
+AssertionError: Not all rows in the map have the same length
+
+all_episodes_rewards: []

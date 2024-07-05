@@ -1,0 +1,232 @@
+Mapping tiles to characters...
+response:
+GenerateContentResponse(
+    done=True,
+    iterator=None,
+    result=protos.GenerateContentResponse({
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "```python\ntiles = {\n    \"EmptyTile\": \" \",\n    \"WallTile\": \"#\",\n    \"PlayerStartTile\": \"@\",\n    \"PlayerEndTile\": \"P\",\n    \"EnemyTile\": \"#\",\n    \"TreasureTile\": \"T\",\n    \"TrapTile\": \"^\"\n}\n```"
+              }
+            ],
+            "role": "model"
+          },
+          "finish_reason": "STOP",
+          "index": 0,
+          "safety_ratings": [
+            {
+              "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_HATE_SPEECH",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_HARASSMENT",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+              "probability": "NEGLIGIBLE"
+            }
+          ]
+        }
+      ],
+      "usage_metadata": {
+        "prompt_token_count": 303,
+        "candidates_token_count": 70,
+        "total_token_count": 373
+      }
+    }),
+)
+
+
+{'EmptyTile': ' ', 'WallTile': '#', 'PlayerStartTile': '@', 'PlayerEndTile': 'P', 'EnemyTile': '#', 'TreasureTile': 'T', 'TrapTile': '^'}
+
+
+Extracting goals...
+
+
+**Main goal for protagonist:**
+
+* Explore the dungeon as far as possible, defeat enemies, collect treasure, and avoid traps.
+
+**Small goals to achieve the main goal:**
+
+* Defeat enemies: +100 points per enemy defeated
+* Collect treasure: +50 points per treasure collected
+* Avoid traps: +25 points for each trap avoided
+* Explore the dungeon: +10 points for each new room discovered
+
+**Penalties:**
+
+* Being defeated by an enemy: -100 points
+* Stepping on a trap: -50 points
+
+**Score:**
+
+The protagonist's score is the sum of all the points they have earned from defeating enemies, collecting treasure, avoiding traps, and exploring the dungeon, minus any points they have lost from being defeated or stepping on traps.
+
+For example, if the protagonist defeats 5 enemies, collects 3 treasures, avoids 2 traps, and explores 10 new rooms, their score would be:
+
+```
+(5 * 100) + (3 * 50) + (2 * 25) + (10 * 10) = 775
+```
+
+If the protagonist is then defeated by an enemy and steps on a trap, their score would be reduced by:
+
+```
+-100 - 50 = -150
+```
+
+Their final score would then be:
+
+```
+775 - 150 = 625
+```
+
+
+History(1): [parts {
+  text: "Story: \"A knight explores a dungeon. The dungeon consists of many corridors like a maze and contains skeleton enemies, traps, treasures and teleports that transport to other dungeon levels. The knight has objectives of finding the most treasure he can, defeating the most enemies he can, avoiding traps and being beaten by enemies which decreases his health, avoiding decreasing the health value to 0 which results in dying, and going the furthest into the dungeon he can by finding portals.\"\n\nLet\'s use the above story to create a 2D game. The exhaustive list of tiles needed to create the environment are: \nEmptyTile (represents walkable empty space),\nWallTile (represents walls of the dungeon),\nPlayerStartTile (represents the starting point of the player, the knight),\nPlayerEndTile (represents the ending point of a level, a portal),\nEnemyTile (represents a skeleton enemy),\nTreasureTile (represents a treasure),\nTrapTile (represents a trap that deals damage when stepped on).\n\nImagine each tile maps to an alphabet or a character. For environment use alphabets and for characters use special characters. Create it in a single Python Dictionary style. Return only and only a Python Dictionary and nothing else in your response. Don\'t return it in a Python response. Names should be the Keys and alphabets or characters should be the Values. Protagonist (PlayerStartTile) should always strictly be \'@\' and the antagonist (EnemyTile) should always strictly be \'#\'.\"\n"
+}
+role: "user"
+, parts {
+  text: "```python\ntiles = {\n    \"EmptyTile\": \" \",\n    \"WallTile\": \"#\",\n    \"PlayerStartTile\": \"@\",\n    \"PlayerEndTile\": \"P\",\n    \"EnemyTile\": \"#\",\n    \"TreasureTile\": \"T\",\n    \"TrapTile\": \"^\"\n}\n```"
+}
+role: "model"
+, parts {
+  text: "What is the main goal for protagonist of the story? What are the small goals for protagonist to achieve the main goal of the story? Also create rewards and penalties based on the goals for protagonist. Create a score for each reward or penalty"
+}
+role: "user"
+, parts {
+  text: "**Main goal for protagonist:**\n\n* Explore the dungeon as far as possible, defeat enemies, collect treasure, and avoid traps.\n\n**Small goals to achieve the main goal:**\n\n* Defeat enemies: +100 points per enemy defeated\n* Collect treasure: +50 points per treasure collected\n* Avoid traps: +25 points for each trap avoided\n* Explore the dungeon: +10 points for each new room discovered\n\n**Penalties:**\n\n* Being defeated by an enemy: -100 points\n* Stepping on a trap: -50 points\n\n**Score:**\n\nThe protagonist\'s score is the sum of all the points they have earned from defeating enemies, collecting treasure, avoiding traps, and exploring the dungeon, minus any points they have lost from being defeated or stepping on traps.\n\nFor example, if the protagonist defeats 5 enemies, collects 3 treasures, avoids 2 traps, and explores 10 new rooms, their score would be:\n\n```\n(5 * 100) + (3 * 50) + (2 * 25) + (10 * 10) = 775\n```\n\nIf the protagonist is then defeated by an enemy and steps on a trap, their score would be reduced by:\n\n```\n-100 - 50 = -150\n```\n\nTheir final score would then be:\n\n```\n775 - 150 = 625\n```"
+}
+role: "model"
+]
+ROUND # 0
+
+Generating World...
+World:
+
+Response:
+response:
+GenerateContentResponse(
+    done=True,
+    iterator=None,
+    result=protos.GenerateContentResponse({
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "```\n# . . . . . . . . . . . . .\n# . . . . . . . . . . . . .\n# . # # # # # # # # # # . .\n# . # . . . . . . . # . . .\n# . # . . . . . . . # . . .\n# . # . . . . . . . # . . .\n# . # # # # # # # # # # . .\n# . . . . . . . . . . . . .\n# . . . . . . . . . . . . .\n# . . . . . . . . . . . . .\n# . # # # # # # # # # # # .\n# . . . . . . . . . . . . .\n# . . . . . . . . . . . . .\n# . # # # # # # # # # # # .\n# . . . . . . . . . . . . .\n# . . . . . . . . . . . . .\n```\n\nThis map is designed to encourage exploration and reward players for taking risks. The empty spaces in the center of the map are surrounded by walls, which forces players to find a way around the obstacles in order to progress. The multiple paths and dead ends also add to the challenge and replayability of the map.\n\nThe map also takes into account the goals of the protagonist, which are to explore the dungeon as far as possible, defeat enemies, collect treasure, and avoid traps. The empty spaces in the center of the map provide ample room for enemies and treasure to be placed, while the walls and dead ends can be used to create traps and other challenges.\n\nOverall, this map is a good starting point for a 2D game that is challenging, rewarding, and fun to play."
+              }
+            ],
+            "role": "model"
+          },
+          "finish_reason": "STOP",
+          "index": 0,
+          "safety_ratings": [
+            {
+              "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_HATE_SPEECH",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_HARASSMENT",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+              "probability": "NEGLIGIBLE"
+            }
+          ]
+        }
+      ],
+      "usage_metadata": {
+        "prompt_token_count": 850,
+        "candidates_token_count": 402,
+        "total_token_count": 1252
+      }
+    }),
+)
+
+```
+# . . . . . . . . . . . . .
+# . . . . . . . . . . . . .
+# . # # # # # # # # # # . .
+# . # . . . . . . . # . . .
+# . # . . . . . . . # . . .
+# . # . . . . . . . # . . .
+# . # # # # # # # # # # . .
+# . . . . . . . . . . . . .
+# . . . . . . . . . . . . .
+# . . . . . . . . . . . . .
+# . # # # # # # # # # # # .
+# . . . . . . . . . . . . .
+# . . . . . . . . . . . . .
+# . # # # # # # # # # # # .
+# . . . . . . . . . . . . .
+# . . . . . . . . . . . . .
+```
+
+This map is designed to encourage exploration and reward players for taking risks. The empty spaces in the center of the map are surrounded by walls, which forces players to find a way around the obstacles in order to progress. The multiple paths and dead ends also add to the challenge and replayability of the map.
+
+The map also takes into account the goals of the protagonist, which are to explore the dungeon as far as possible, defeat enemies, collect treasure, and avoid traps. The empty spaces in the center of the map provide ample room for enemies and treasure to be placed, while the walls and dead ends can be used to create traps and other challenges.
+
+Overall, this map is a good starting point for a 2D game that is challenging, rewarding, and fun to play.
+
+
+Extracting tilemap...
+
+
+# . . . . . . . . . . . . .
+# . . . . . . . . . . . . .
+# . # # # # # # # # # # . .
+# . # . . . . . . . # . . .
+# . # . . . . . . . # . . .
+# . # . . . . . . . # . . .
+# . # # # # # # # # # # . .
+# . . . . . . . . . . . . .
+# . . . . . . . . . . . . .
+# . . . . . . . . . . . . .
+# . # # # # # # # # # # # .
+# . . . . . . . . . . . . .
+# . . . . . . . . . . . . .
+# . # # # # # # # # # # # .
+# . . . . . . . . . . . . .
+# . . . . . . . . . . . . .
+
+
+Fixing tilemap...
+#.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Traceback (most recent call last):
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\main.py", line 109, in <module>
+    main()
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\main.py", line 106, in main
+    env.run(config)
+  File "D:\Github\dungeonCrawlerMgr\MLTrainingScripts\LLM_Gemini_basedOn_Word2World\main.py", line 60, in run
+    world_map_fixed, world_map_fixed_with_chars, world_eval_dict, tileset_used_orig, tileset_used_dict, \
+TypeError: cannot unpack non-iterable NoneType object

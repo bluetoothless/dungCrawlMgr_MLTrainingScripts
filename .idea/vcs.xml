@@ -2,6 +2,9 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Word2World" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Word2World_Gemini" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/gym-pcgrl" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/lm-pcg" vcs="Git" />
   </component>
 </project>

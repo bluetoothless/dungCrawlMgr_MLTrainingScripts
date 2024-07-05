@@ -1,0 +1,153 @@
+GenerateContentResponse(
+    done=True,
+    iterator=None,
+    result=protos.GenerateContentResponse({
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "```python\ntile_map = {\n    'EmptyTile': '.',\n    'WallTile': '#',\n    'PlayerStartTile': '@',\n    'PlayerEndTile': '%',\n    'EnemyTile': '#',\n    'TreasureTile': '$',\n    'TrapTile': '^'\n}\n```"
+              }
+            ],
+            "role": "model"
+          },
+          "finish_reason": "STOP",
+          "index": 0,
+          "safety_ratings": [
+            {
+              "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_HATE_SPEECH",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_HARASSMENT",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+              "probability": "NEGLIGIBLE"
+            }
+          ]
+        }
+      ],
+      "usage_metadata": {
+        "prompt_token_count": 303,
+        "candidates_token_count": 69,
+        "total_token_count": 372
+      }
+    }),
+)
+
+
+{'EmptyTile': '.', 'WallTile': '#', 'PlayerStartTile': '@', 'PlayerEndTile': '%', 'EnemyTile': '#', 'TreasureTile': '$', 'TrapTile': '^'}
+
+
+Extracting goals...
+
+
+**Main goal for protagonist:**
+
+* Explore the dungeon, defeat enemies, collect treasure, and progress as far as possible without dying.
+
+**Small goals to achieve the main goal:**
+
+* **Defeat enemies:** Each enemy defeated is worth 100 points.
+* **Collect treasure:** Each treasure collected is worth 50 points.
+* **Progress to the next level:** Each new level reached is worth 200 points.
+* **Avoid traps:** Each trap avoided is worth 50 points.
+* **Avoid being defeated by enemies:** Each time the protagonist is defeated by an enemy, they lose 100 points.
+
+**Penalties:**
+
+* **Dying:** The protagonist loses all their points and the game is over.
+
+**Rewards:**
+
+* **Defeating the final boss:** The protagonist wins the game and earns a bonus of 1000 points.
+* **Collecting all the treasure:** The protagonist earns a bonus of 500 points.
+* **Reaching the deepest level of the dungeon:** The protagonist earns a bonus of 250 points.
+
+**Score:**
+
+The protagonist's score is the sum of all the points they have earned minus the sum of all the points they have lost. The protagonist's score is displayed in the top-left corner of the screen.
+
+
+Extracting walkable tiles...
+response:
+GenerateContentResponse(
+    done=True,
+    iterator=None,
+    result=protos.GenerateContentResponse({
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "```python\nwalkable_tiles = ['.', '@', '%', '$']\n```"
+              }
+            ],
+            "role": "model"
+          },
+          "finish_reason": "STOP",
+          "index": 0,
+          "safety_ratings": [
+            {
+              "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_HATE_SPEECH",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_HARASSMENT",
+              "probability": "NEGLIGIBLE"
+            },
+            {
+              "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+              "probability": "NEGLIGIBLE"
+            }
+          ]
+        }
+      ],
+      "usage_metadata": {
+        "prompt_token_count": 805,
+        "candidates_token_count": 19,
+        "total_token_count": 824
+      }
+    }),
+)
+
+
+['.', '@', '%', '$']
+
+
+History(1): [parts {
+  text: "Story: \"A knight explores a dungeon. The dungeon consists of many corridors like a maze and contains skeleton enemies, traps, treasures and teleports that transport to other dungeon levels. The knight has objectives of finding the most treasure he can, defeating the most enemies he can, avoiding traps and being beaten by enemies which decreases his health, avoiding decreasing the health value to 0 which results in dying, and going the furthest into the dungeon he can by finding portals.\"\n\nLet\'s use the above story to create a 2D game. The exhaustive list of tiles needed to create the environment are: \nEmptyTile (represents walkable empty space),\nWallTile (represents walls of the dungeon),\nPlayerStartTile (represents the starting point of the player, the knight),\nPlayerEndTile (represents the ending point of a level, a portal),\nEnemyTile (represents a skeleton enemy),\nTreasureTile (represents a treasure),\nTrapTile (represents a trap that deals damage when stepped on).\n\nImagine each tile maps to an alphabet or a character. For environment use alphabets and for characters use special characters. Create it in a single Python Dictionary style. Return only and only a Python Dictionary and nothing else in your response. Don\'t return it in a Python response. Names should be the Keys and alphabets or characters should be the Values. Protagonist (PlayerStartTile) should always strictly be \'@\' and the antagonist (EnemyTile) should always strictly be \'#\'.\"\n"
+}
+role: "user"
+, parts {
+  text: "```python\ntile_map = {\n    \'EmptyTile\': \'.\',\n    \'WallTile\': \'#\',\n    \'PlayerStartTile\': \'@\',\n    \'PlayerEndTile\': \'%\',\n    \'EnemyTile\': \'#\',\n    \'TreasureTile\': \'$\',\n    \'TrapTile\': \'^\'\n}\n```"
+}
+role: "model"
+, parts {
+  text: "What is the main goal for protagonist of the story? What are the small goals for protagonist to achieve the main goal of the story? Also create rewards and penalties based on the goals for protagonist. Create a score for each reward or penalty"
+}
+role: "user"
+, parts {
+  text: "**Main goal for protagonist:**\n\n* Explore the dungeon, defeat enemies, collect treasure, and progress as far as possible without dying.\n\n**Small goals to achieve the main goal:**\n\n* **Defeat enemies:** Each enemy defeated is worth 100 points.\n* **Collect treasure:** Each treasure collected is worth 50 points.\n* **Progress to the next level:** Each new level reached is worth 200 points.\n* **Avoid traps:** Each trap avoided is worth 50 points.\n* **Avoid being defeated by enemies:** Each time the protagonist is defeated by an enemy, they lose 100 points.\n\n**Penalties:**\n\n* **Dying:** The protagonist loses all their points and the game is over.\n\n**Rewards:**\n\n* **Defeating the final boss:** The protagonist wins the game and earns a bonus of 1000 points.\n* **Collecting all the treasure:** The protagonist earns a bonus of 500 points.\n* **Reaching the deepest level of the dungeon:** The protagonist earns a bonus of 250 points.\n\n**Score:**\n\nThe protagonist\'s score is the sum of all the points they have earned minus the sum of all the points they have lost. The protagonist\'s score is displayed in the top-left corner of the screen."
+}
+role: "model"
+, parts {
+  text: "Considering the above goals that you extracted from the story and the following tileset\n{\'EmptyTile\': \'.\', \'WallTile\': \'#\', \'PlayerStartTile\': \'@\', \'PlayerEndTile\': \'%\', \'EnemyTile\': \'#\', \'TreasureTile\': \'$\', \'TrapTile\': \'^\'}\n create a Python list of the walkable tiles in the 2D tilemap world. Only return the walkable tiles python list and include nothing else in your response. Don\'t return it in a Python response."
+}
+role: "user"
+, parts {
+  text: "```python\nwalkable_tiles = [\'.\', \'@\', \'%\', \'$\']\n```"
+}
+role: "model"
+]
