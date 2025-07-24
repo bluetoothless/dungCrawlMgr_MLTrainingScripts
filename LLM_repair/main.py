@@ -6,7 +6,6 @@ import gemini_generator
 from dotenv import load_dotenv
 from gemini_generator import GeminiGenerator
 
-LLM_results_directory = "D:/Github/dungeonCrawlerMgr/LevelData/results_LLM/"
 
 class Config:
     model_name = "gemini-1.0-pro"
@@ -17,6 +16,11 @@ class Config:
     experiment_name = "pcgml_LLM" 
     save_dir = f"outputs/{experiment_name}"
     tile_data_dir = "data"
+    maze = None
+    enemies = 4 #7
+    treasures = 3 #6
+    traps = 2
+    result_dir = "D:/Github/dungeonCrawlerMgr/LevelData/results_RL+LLM/"
 
 class EnvManager:
     def __init__(self):
@@ -58,7 +62,7 @@ class EnvManager:
         interactive_tiles_keys = ['EnemyTile', 'TreasureTile', 'TrapTile', 'PlayerEndTile']
         interactive_tiles_list = [tile_map_dict[key] for key in interactive_tiles_keys if key in tile_map_dict]
         #print(f"History(1): {generator.chat.history}")
-        # cfg.rounds = 1
+        cfg.rounds = 1
         for rounds in range(cfg.rounds):
             print(f"ROUND # {rounds}\n")
             world_map_fixed, world_map_fixed_with_chars, world_map_result, world_eval_dict, tileset_used_orig, tileset_used_dict, \
@@ -74,7 +78,11 @@ class EnvManager:
                                                                                         important_tiles_list, 
                                                                                         walkable_tiles_list,
                                                                                         interactive_tiles_list,
-                                                                                        cfg.save_dir)
+                                                                                        cfg.save_dir,
+                                                                                        cfg.maze,
+                                                                                        cfg.enemies,
+                                                                                        cfg.treasures,
+                                                                                        cfg.traps)
             
             self.previous_story.append(story)
             self.previous_tile_map.append(tileset_used_dict)
@@ -110,10 +118,10 @@ class EnvManager:
             # print(f"Total spent = {self.total_spent}")
         print("-------------------------------------------------")
         print(f"Final map:\n{world_map_result}")
-        self.save_map(tile_map_dict, world_map_result)
+        self.save_map(tile_map_dict, world_map_result, cfg)
 
-    def get_last_number(self):
-        files = os.listdir(LLM_results_directory)
+    def get_last_number(self, cfg):
+        files = os.listdir(cfg.result_dir)
         max_num = 0
         for file in files:
             if "generated_" in file:
@@ -124,12 +132,13 @@ class EnvManager:
                     pass
         return max_num
 
-    def save_map(self, tile_map_dict, world_map_raw_with_chars):
+    def save_map(self, tile_map_dict, world_map_raw_with_chars, cfg):
         symbol_to_index = {v: k for k, v in enumerate(tile_map_dict.values())}
         map_lines = [list(line) for line in world_map_raw_with_chars.strip().split("\n")]
         level_tile_array = [[symbol_to_index[char] for char in line] for line in map_lines]
-        index = str(int(self.get_last_number()) + 1)
-        filepath = os.path.join(LLM_results_directory, f'generated_levelTileArray_{index}.json')
+        next_file_nr = 1 if "LevelData/results_LLM/" in cfg.result_dir else 0
+        index = str(int(self.get_last_number(cfg)) + next_file_nr)
+        filepath = os.path.join(cfg.result_dir, f'generated_levelTileArray_{index}.json')
         data = {
             "LevelTileArray": level_tile_array
         }
@@ -149,6 +158,11 @@ def main():
     parser.add_argument('--rounds', type=str, help='Defaults to 3. Rounds of world generation.')
     parser.add_argument('--experiment_name', type=str, help='Defaults to "pcgml_LLM".')
     parser.add_argument('--save_dir', type=str, help='Defaults to "outputs/{--experiment_name}"')
+    parser.add_argument('--maze', type=str, help='Type of maze: "none", "perfect", "braid". Defaults to none.')
+    parser.add_argument('--enemies', type=int, help='Number of enemies. Defaults to 7.')
+    parser.add_argument('--treasures', type=int, help='Number of treasures. Defaults to 6.')
+    parser.add_argument('--traps', type=int, help='Number of traps. Defaults to 2.')
+    parser.add_argument('--result_dir', type=str, help='Directory of generated maps. Defaults to D:/Github/dungeonCrawlerMgr/LevelData/results_LLM/')
 
     args = parser.parse_args()
     
@@ -168,7 +182,19 @@ def main():
         config.experiment_name = args.experiment_name
     if args.save_dir:
         config.save_dir = args.save_dir
+    if args.maze:
+        config.maze = args.maze if args.maze in ["perfect", "braid"] else None
+    if args.enemies:
+        config.enemies = args.enemies
+    if args.treasures:
+        config.treasures = args.treasures
+    if args.traps:
+        config.traps = args.traps
+    if args.result_dir:
+        config.result_dir = args.result_dir
     
+    maze_type = config.maze if config.maze != None else "none"
+    print(f"Maze type: {maze_type}\nNumber of enemies:{config.enemies}\nNumber of treasures:{config.treasures}")
     env = EnvManager()
     env.run(config)
 

@@ -17,10 +17,10 @@ class Config:
     save_dir = f"outputs/{experiment_name}"
     tile_data_dir = "data"
     maze = None
-    enemies = 7
-    treasures = 6
+    enemies = 4 #7
+    treasures = 3 #6
     traps = 2
-    result_dir = "D:/Github/dungeonCrawlerMgr/LevelData/results_LLM/"
+    result_dir = "D:/Github/dungeonCrawlerMgr/LevelData/results_LLM/maze_none/"
 
 class EnvManager:
     def __init__(self):
@@ -158,7 +158,7 @@ def main():
     parser.add_argument('--rounds', type=str, help='Defaults to 3. Rounds of world generation.')
     parser.add_argument('--experiment_name', type=str, help='Defaults to "pcgml_LLM".')
     parser.add_argument('--save_dir', type=str, help='Defaults to "outputs/{--experiment_name}"')
-    parser.add_argument('--maze', type=str, help='Type of maze: "none", "perfect", "braid", "unicursal". Defaults to none.')
+    parser.add_argument('--maze', type=str, help='Type of maze: "none", "perfect", "braid". Defaults to none.')
     parser.add_argument('--enemies', type=int, help='Number of enemies. Defaults to 7.')
     parser.add_argument('--treasures', type=int, help='Number of treasures. Defaults to 6.')
     parser.add_argument('--traps', type=int, help='Number of traps. Defaults to 2.')
@@ -183,7 +183,7 @@ def main():
     if args.save_dir:
         config.save_dir = args.save_dir
     if args.maze:
-        config.maze = args.maze if args.maze in ["perfect", "braid", "unicursal"] else None
+        config.maze = args.maze if args.maze in ["perfect", "braid"] else None
     if args.enemies:
         config.enemies = args.enemies
     if args.treasures:
@@ -193,6 +193,8 @@ def main():
     if args.result_dir:
         config.result_dir = args.result_dir
     
+    maze_type = config.maze if config.maze != None else "none"
+    print(f"Maze type: {maze_type}\nNumber of enemies:{config.enemies}\nNumber of treasures:{config.treasures}")
     env = EnvManager()
     env.run(config)
 

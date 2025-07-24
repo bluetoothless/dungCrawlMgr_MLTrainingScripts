@@ -259,7 +259,7 @@ if __name__ == "__main__":
     # Training Loop
     train_losses = []
     val_losses = []
-    for epoch in range(1, num_epochs):  # Adjust the range based on your needs
+    for epoch in range(1, num_epochs):  # Adjust the range based on needs
         model.train()
         train_loss = 0
         loss_BCE = 0
@@ -297,7 +297,7 @@ if __name__ == "__main__":
 
         # Save model and plots
         if epoch % save_step == 0:
-            save_model(model, torch.device("cpu"))  # Change to "cuda" if using GPU
+            save_model(model, torch.device("cpu"))
             save_plot(train_losses, val_losses, get_next_number())
 
         # Learning rate decay
